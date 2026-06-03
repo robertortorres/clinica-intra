@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% set active="sections" %}
+{% block title %}{{ 'Editar' if sec else 'Nova' }} Seção{% endblock %}
+{% block page_title %}{{ 'Editar' if sec else 'Nova' }} Seção{% endblock %}
+{% block extra_head %}
+<style>
+.emoji-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-height:180px;overflow-y:auto;
+  border:1.5px solid var(--bd);border-radius:8px;padding:8px;background:#fafcff}
+.emoji-btn{font-size:1.3rem;padding:4px;border:2px solid transparent;border-radius:6px;
+  background:none;cursor:pointer;transition:all .1s;text-align:center}
+.emoji-btn:hover{background:#e8f0fc;border-color:var(--cl)}
+.emoji-btn.sel{background:#dbeafe;border-color:var(--med)}
+.cur-icon{font-size:2rem;width:52px;height:52px;border:2px solid var(--bd);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;background:#fafcff}
+</style>
+{% endblock %}
+{% block content %}
+<div class="aform">
+  {% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+  <div class="acard">
+    <div class="acard-hd">{{ 'Editar' if sec else 'Nova' }} Seção</div>
+    <div style="padding:20px">
+      <form method="post" action="{{ '/admin/sections/'+sec.id|string+'/edit' if sec else '/admin/sections/new' }}">
+        <div class="frow" style="align-items:start">
+          <div>
+            <div class="frow">
+              <div class="fg">
+                <label>Nome da Seção *</label>
+                <input type="text" name="name" value="{{ sec.name if sec else '' }}" required placeholder="Ex: Convênios">
+              </div>
+              <div class="fg">
+                <label>Ordem</label>
+                <input type="number" name="order" value="{{ sec.order if sec else 99 }}" min="1">
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label>Cor do Card</label>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="color" name="color" id="color-pick"
+                         value="{{ sec.color if sec else '#2563a8' }}"
+                         style="width:44px;height:38px;padding:2px;border-radius:6px;border:1.5px solid var(--bd);cursor:pointer">
+                  <div style="display:flex;gap:5px;flex-wrap:wrap">
+                    {% for c in ['#1a3a5c','#2563a8','#0ea5d4','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#64748b','#059669','#dc2626','#7c3aed'] %}
+                    <div onclick="document.getElementById('color-pick').value='{{ c }}'"
+                         style="width:22px;height:22px;border-radius:50%;background:{{ c }};cursor:pointer;border:2px solid transparent"
+                         onmouseover="this.style.borderColor='#333'" onmouseout="this.style.borderColor='transparent'"></div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+              {% if sec %}
+              <div class="fg">
+                <label>Status</label>
+                <select name="active">
+                  <option value="on" {{ 'selected' if sec.active }}>✅ Ativo</option>
+                  <option value="off" {{ 'selected' if not sec.active }}>❌ Inativo</option>
+                </select>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="fg">
+            <label>Ícone atual</label>
+            <div class="cur-icon" id="cur-icon">{{ sec.icon if sec else '📁' }}</div>
+            <input type="hidden" name="icon" id="icon-val" value="{{ sec.icon if sec else '📁' }}">
+          </div>
+        </div>
+
+        <!-- Emoji picker -->
+        <div class="fg">
+          <label>Escolha o Ícone</label>
+          <div class="emoji-grid" id="egrid">
+            {% for e in ['📁','👨‍⚕️','🤝','💰','🔬','💉','💳','📞','📅','📋','🌐','🔧','🏥','❤️','🩺','💊','🩻','📊','📈','📝','✅','⭐','🔑','🚑','🏨','💻','📱','📧','🔔','⚙️','🛡️','📌','📍','🗂️','🗃️','📦','🎯','💡','🔍','🧪','🧬','🩹','🧑‍💼','👤','👥','🏆','⚡','🌟','💼','🗓️','🕐','⏰'] %}
+            <button type="button" class="emoji-btn {{ 'sel' if sec and sec.icon==e else '' }}"
+                    onclick="setIcon('{{ e }}')">{{ e }}</button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn grn" type="submit">✔ Salvar Seção</button>
+          <a class="btn sec" href="/admin/sections">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function setIcon(e){
+  document.getElementById('icon-val').value=e;
+  document.getElementById('cur-icon').textContent=e;
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('sel'));
+  event.target.classList.add('sel');
+}
+</script>
+{% endblock %}

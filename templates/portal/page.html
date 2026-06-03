@@ -1,0 +1,41 @@
+{% extends "portal/base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+<div class="bc">
+  <a href="/">🏠 Início</a> <span>›</span>
+  <a href="/s/{{ section.slug }}">{{ section.icon }} {{ section.name }}</a> <span>›</span>
+  <span>{{ page.title }}</span>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+  <div style="font-family:'DM Serif Display',serif;font-size:1.7rem">{{ page.title }}</div>
+  {% if user and user.role in ('admin','editor') %}
+  <a href="/admin/pages/{{ page.id }}/edit"
+     style="background:var(--med);color:#fff;padding:7px 16px;border-radius:7px;font-size:.82rem;font-weight:500">
+    ✏ Editar página
+  </a>
+  {% endif %}
+</div>
+
+<div class="page-content">
+  {{ page.content|safe }}
+</div>
+
+{% if page.attachments %}
+<div class="attach-list">
+  <h3>📎 Arquivos para download</h3>
+  <div class="attach-grid">
+    {% for att in page.attachments %}
+    <div class="attach-item">
+      <div class="attach-icon">{{ '📄' if att.mime_type and 'pdf' in att.mime_type else '📊' if att.mime_type and ('excel' in att.mime_type or 'sheet' in att.mime_type) else '📝' if att.mime_type and 'word' in att.mime_type else '📎' }}</div>
+      <div class="attach-info">
+        <div class="attach-name">{{ att.filename }}</div>
+        <div class="attach-meta">{{ (att.size_bytes / 1024)|round(1) }} KB</div>
+      </div>
+      <a class="attach-dl" href="/download/{{ att.id }}">⬇ Baixar</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

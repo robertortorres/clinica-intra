@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% set active="users" %}
+{% block title %}{{ 'Editar' if editing else 'Novo' }} Usuário{% endblock %}
+{% block page_title %}{{ 'Editar' if editing else 'Novo' }} Usuário{% endblock %}
+{% block content %}
+<div class="aform">
+  {% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+  <div class="acard">
+    <div class="acard-hd">{{ 'Editar' if editing else 'Novo' }} Usuário</div>
+    <div style="padding:20px">
+      <form method="post" action="{{ '/admin/users/'+editing.id|string+'/edit' if editing else '/admin/users/new' }}">
+        <div class="frow">
+          <div class="fg"><label>Nome completo *</label>
+            <input type="text" name="name" value="{{ editing.name if editing else '' }}" required placeholder="Ex: Maria Silva"></div>
+          <div class="fg"><label>Usuário (login) *</label>
+            <input type="text" name="username" value="{{ editing.username if editing else '' }}" required placeholder="Ex: maria"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label>{{ 'Nova Senha (vazio = manter)' if editing else 'Senha *' }}</label>
+            <input type="password" name="password" placeholder="••••••" {{ '' if editing else 'required' }}></div>
+          <div class="fg"><label>Perfil</label>
+            <select name="role">
+              <option value="viewer" {{ 'selected' if editing and editing.role=='viewer' }}>👁 Visualizador</option>
+              <option value="editor" {{ 'selected' if editing and editing.role=='editor' }}>✏ Editor</option>
+              <option value="admin"  {{ 'selected' if editing and editing.role=='admin' }}>⚙ Administrador</option>
+            </select></div>
+        </div>
+        {% if editing %}
+        <div class="fg"><label>Status</label>
+          <select name="active">
+            <option value="on" {{ 'selected' if editing.active }}>✅ Ativo</option>
+            <option value="off" {{ 'selected' if not editing.active }}>❌ Inativo</option>
+          </select></div>
+        {% endif %}
+        <div class="form-actions">
+          <button class="btn grn" type="submit">✔ Salvar</button>
+          <a class="btn sec" href="/admin/users">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

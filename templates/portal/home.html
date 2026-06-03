@@ -1,0 +1,42 @@
+{% extends "portal/base.html" %}
+{% set cur_section=none %}{% set cur_page=none %}
+{% block title %}Início{% endblock %}
+{% block extra_head %}
+<style>
+.hero{margin-bottom:26px}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--azul)}
+.hero p{color:var(--txt);font-size:.9rem;margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.card{
+  background:var(--branco);border-radius:14px;
+  border:1px solid var(--bd);padding:24px 18px 20px;
+  cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;
+  display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  text-decoration:none;color:inherit;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--card-color,var(--med));
+}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sl);border-color:var(--card-color,var(--med))}
+.card .ci{font-size:2.2rem;line-height:1}
+.card .ct{font-size:.95rem;font-weight:600;color:var(--azul);line-height:1.3}
+.card .cq{font-size:.75rem;color:var(--txt);margin-top:auto}
+</style>
+{% endblock %}
+{% block content %}
+<div class="hero">
+  <h1>Bem-vindo ao Portal 👋</h1>
+  <p>Selecione uma categoria para ver as informações.</p>
+</div>
+<div class="grid">
+{% for s in sections %}
+  {% set n = s.pages|selectattr('active')|list|length %}
+  <a class="card" href="/s/{{ s.slug }}" style="--card-color:{{ s.color }}">
+    <div class="ci">{{ s.icon }}</div>
+    <div class="ct">{{ s.name }}</div>
+    <div class="cq">{{ n }} {{ 'página' if n==1 else 'páginas' }}</div>
+  </a>
+{% endfor %}
+</div>
+{% endblock %}

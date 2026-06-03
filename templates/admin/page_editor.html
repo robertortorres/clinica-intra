@@ -1,0 +1,243 @@
+{% extends "admin/base.html" %}
+{% set active="pages" %}
+{% block title %}{{ 'Editar' if page else 'Nova' }} Página{% endblock %}
+{% block page_title %}{{ 'Editar' if page else 'Nova' }} Página{% endblock %}
+
+{% block extra_head %}
+<!-- Quill editor -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.editor-wrap{background:var(--branco);border-radius:var(--r);border:1px solid var(--bd);overflow:hidden}
+#toolbar{border-bottom:1px solid var(--bd)!important;border:none;background:#f8fafc;padding:8px 10px;flex-wrap:wrap;gap:4px}
+#editor-container{min-height:420px;font-size:.9rem;font-family:'DM Sans',sans-serif}
+.ql-container{border:none!important;font-family:'DM Sans',sans-serif!important}
+.ql-toolbar{border:none!important}
+.ql-editor{min-height:400px;padding:20px 24px;font-size:.9rem;line-height:1.75}
+.ql-editor h1{font-size:1.7rem}.ql-editor h2{font-size:1.35rem}.ql-editor h3{font-size:1.1rem}
+.ql-editor table{border-collapse:collapse;width:100%}
+.ql-editor td,.ql-editor th{border:1px solid #dbe4ef;padding:7px 10px}
+/* attachments panel */
+.att-panel{background:#f8fafc;border:1.5px dashed var(--bd);border-radius:var(--r);padding:16px;margin-top:8px}
+.att-panel h4{font-size:.82rem;font-weight:600;color:var(--txt);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.att-existing{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.att-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--bd);
+  border-radius:7px;padding:8px 12px}
+.att-row .fn{flex:1;font-size:.83rem;font-weight:500}
+.att-row .fm{font-size:.72rem;color:var(--txt)}
+.upload-zone{border:2px dashed var(--bd);border-radius:8px;padding:18px;text-align:center;
+  cursor:pointer;transition:all .2s;background:#fff}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--med);background:#eef3fb}
+.upload-zone input{display:none}
+.upload-zone .icon{font-size:1.8rem;margin-bottom:6px}
+.upload-zone p{font-size:.82rem;color:var(--txt)}
+.upload-zone .ul{color:var(--med);font-weight:500;cursor:pointer}
+.file-queue{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.fq-item{display:flex;align-items:center;gap:8px;background:#e8f0fc;border-radius:6px;padding:6px 10px;font-size:.8rem}
+.fq-item button{margin-left:auto;background:none;border:none;color:var(--perigo);font-size:1rem;cursor:pointer}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="aform" style="max-width:900px">
+  {% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+  <form method="post" enctype="multipart/form-data"
+        action="{{ '/admin/pages/'+page.id|string+'/edit' if page else '/admin/pages/new' }}"
+        id="main-form">
+
+    <!-- Meta info -->
+    <div class="acard" style="margin-bottom:14px">
+      <div class="acard-hd">Informações da Página</div>
+      <div style="padding:16px">
+        <div class="frow3">
+          <div class="fg" style="grid-column:1/3">
+            <label>Título *</label>
+            <input type="text" name="title" value="{{ page.title if page else '' }}" required placeholder="Ex: Tabela de Convênios – Allianz">
+          </div>
+          <div class="fg">
+            <label>Ordem</label>
+            <input type="number" name="order" value="{{ page.order if page else 99 }}" min="0">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Seção *</label>
+            <select name="section_id">
+              {% for s in sections %}
+              <option value="{{ s.id }}"
+                {% if page and page.section_id==s.id %}selected
+                {% elif not page and preselect==s.id %}selected{% endif %}>
+                {{ s.icon }} {{ s.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% if page %}
+          <div class="fg">
+            <label>Status</label>
+            <select name="active">
+              <option value="on" {{ 'selected' if page.active }}>✅ Ativo</option>
+              <option value="off" {{ 'selected' if not page.active }}>❌ Inativo</option>
+            </select>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Rich editor -->
+    <div class="acard" style="margin-bottom:14px">
+      <div class="acard-hd">Conteúdo da Página</div>
+      <div style="padding:0">
+        <div class="editor-wrap">
+          <div id="editor-container">{{ page.content|safe if page else '' }}</div>
+        </div>
+        <input type="hidden" name="content" id="content-input">
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="acard" style="margin-bottom:14px">
+      <div class="acard-hd">📎 Arquivos para Download
+        <span style="font-size:.75rem;font-weight:400;color:var(--txt)">PDF, Word, Excel, etc.</span>
+      </div>
+      <div style="padding:16px">
+        <!-- Existing attachments -->
+        {% if page and page.attachments %}
+        <div class="att-existing">
+          {% for att in page.attachments %}
+          <div class="att-row">
+            <span>{{ '📄' if 'pdf' in att.mime_type else '📊' if 'excel' in att.mime_type or 'sheet' in att.mime_type else '📝' if 'word' in att.mime_type else '📎' }}</span>
+            <span class="fn">{{ att.filename }}</span>
+            <span class="fm">{{ (att.size_bytes/1024)|round(1) }} KB</span>
+            <a href="/download/{{ att.id }}" target="_blank" style="font-size:.76rem;color:var(--med)">⬇ Baixar</a>
+            <form method="post" action="/admin/attachments/{{ att.id }}/delete" style="margin:0"
+                  onsubmit="return confirm('Remover {{ att.filename }}?')">
+              <input type="hidden" name="next_url" value="/admin/pages/{{ page.id }}/edit">
+              <button type="submit" style="background:#fef2f2;border:1px solid #fecaca;color:var(--perigo);
+                border-radius:5px;padding:3px 8px;font-size:.74rem;cursor:pointer">✕ Remover</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Upload zone -->
+        <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+             ondragover="ev(event,'drag',true)" ondragleave="ev(event,'drag',false)"
+             ondrop="onDrop(event)">
+          <div class="icon">📤</div>
+          <p>Arraste arquivos aqui ou <span class="ul">clique para selecionar</span></p>
+          <p style="font-size:.74rem;margin-top:3px">PDF, Word, Excel, imagens e outros</p>
+          <input type="file" id="file-input" name="files" multiple onchange="onFiles(this.files)">
+        </div>
+        <div class="file-queue" id="file-queue"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn grn" type="submit" onclick="saveContent()">✔ Salvar Página</button>
+      <a class="btn sec" href="/admin/pages{% if page %}?section_id={{ page.section_id }}{% endif %}">Cancelar</a>
+      {% if page %}
+      <a class="btn sec" href="/p/{{ page.id }}" target="_blank" style="margin-left:auto">👁 Ver no Portal</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+// ── Quill setup ─────────────────────────────────────
+const quill = new Quill('#editor-container', {
+  theme: 'snow',
+  placeholder: 'Escreva o conteúdo da página aqui...\n\nUse a barra de ferramentas para formatar texto, inserir tabelas, imagens e muito mais.',
+  modules: {
+    toolbar: {
+      container: [
+        [{ header: [1,2,3,false] }],
+        ['bold','italic','underline','strike'],
+        [{ color:[] },{ background:[] }],
+        [{ list:'ordered' },{ list:'bullet' }],
+        [{ indent:'-1' },{ indent:'+1' }],
+        [{ align:[] }],
+        ['blockquote','code-block'],
+        ['link','image','video'],
+        ['clean']
+      ],
+      handlers: { image: imageHandler }
+    }
+  }
+});
+
+// Image upload handler
+function imageHandler(){
+  const inp = document.createElement('input');
+  inp.setAttribute('type','file');
+  inp.setAttribute('accept','image/*');
+  inp.click();
+  inp.onchange = async () => {
+    const file = inp.files[0];
+    if(!file) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch('/admin/upload-image', {method:'POST', body:fd});
+    if(res.ok){
+      const data = await res.json();
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, 'image', data.url);
+    } else {
+      alert('Erro ao enviar imagem.');
+    }
+  };
+}
+
+function saveContent(){
+  document.getElementById('content-input').value = quill.root.innerHTML;
+}
+
+// ── File upload queue ────────────────────────────────
+let fileList = new DataTransfer();
+
+function onFiles(files){
+  for(const f of files) fileList.items.add(f);
+  renderQueue();
+}
+
+function onDrop(e){
+  e.preventDefault();
+  ev(e,'drag',false);
+  onFiles(e.dataTransfer.files);
+}
+
+function ev(e,cls,add){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList[add?'add':'remove'](cls);
+}
+
+function removeFile(i){
+  const dt = new DataTransfer();
+  Array.from(fileList.files).forEach((f,idx)=>{ if(idx!==i) dt.items.add(f); });
+  fileList = dt;
+  renderQueue();
+}
+
+function renderQueue(){
+  const q = document.getElementById('file-queue');
+  const inp = document.getElementById('file-input');
+  inp.files = fileList.files;
+  q.innerHTML = '';
+  Array.from(fileList.files).forEach((f,i)=>{
+    const div = document.createElement('div');
+    div.className='fq-item';
+    div.innerHTML=`<span>📎</span><span style="flex:1">${f.name}</span>
+      <span style="color:var(--txt);font-size:.72rem">${(f.size/1024).toFixed(1)} KB</span>
+      <button type="button" onclick="removeFile(${i})">✕</button>`;
+    q.appendChild(div);
+  });
+}
+
+// Ensure content saved on form submit
+document.getElementById('main-form').addEventListener('submit', saveContent);
+</script>
+{% endblock %}

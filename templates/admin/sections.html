@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% set active="sections" %}
+{% block title %}Seções{% endblock %}
+{% block page_title %}Seções{% endblock %}
+{% block top_actions %}<a class="btn" href="/admin/sections/new">＋ Nova Seção</a>{% endblock %}
+{% block content %}
+<div class="acard">
+  <table class="atbl">
+    <thead><tr><th>Ícone</th><th>Cor</th><th>Nome</th><th>Ordem</th><th>Páginas</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    {% for s in sections %}
+    <tr>
+      <td style="font-size:1.4rem">{{ s.icon }}</td>
+      <td><div style="width:22px;height:22px;border-radius:50%;background:{{ s.color }}"></div></td>
+      <td><strong>{{ s.name }}</strong></td>
+      <td>{{ s.order }}</td>
+      <td>{{ s.pages|length }}</td>
+      <td>{% if s.active %}<span class="badge b-on">Ativo</span>{% else %}<span class="badge b-off">Inativo</span>{% endif %}</td>
+      <td>
+        <a class="btn sec" href="/admin/pages?section_id={{ s.id }}" style="margin-right:4px">Páginas</a>
+        <a class="btn" href="/admin/sections/{{ s.id }}/edit" style="margin-right:4px">Editar</a>
+        <button class="btn dan" onclick="cDel({{ s.id }},'{{ s.name }}')">Excluir</button>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="cov" id="cov" style="display:none">
+  <div class="cbox">
+    <h3>Confirmar exclusão</h3><p id="cmsg"></p>
+    <div class="cbox-btns">
+      <button class="btn sec" onclick="document.getElementById('cov').style.display='none'">Cancelar</button>
+      <form id="cform" method="post"><button class="btn dan">Excluir</button></form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function cDel(id,n){document.getElementById('cmsg').textContent=`Excluir "${n}" e todas as suas páginas?`;
+document.getElementById('cform').action=`/admin/sections/${id}/delete`;
+document.getElementById('cov').style.display='flex'}
+</script>
+{% endblock %}

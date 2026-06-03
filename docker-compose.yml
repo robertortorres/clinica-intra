@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: medsel_db
+    restart: always
+    environment:
+      POSTGRES_DB: medsel
+      POSTGRES_USER: medsel
+      POSTGRES_PASSWORD: medsel2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medsel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: medsel_app
+    restart: always
+    ports:
+      - "80:8000"
+    environment:
+      DATABASE_URL: postgresql://medsel:medsel2024@db:5432/medsel
+      SECRET_KEY: "medsel-secret-key-2024-troque-isso"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  postgres_data:
+  uploads_data:

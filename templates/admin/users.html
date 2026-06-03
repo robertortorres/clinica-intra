@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+{% set active="users" %}
+{% block title %}Usuários{% endblock %}
+{% block page_title %}Usuários{% endblock %}
+{% block top_actions %}<a class="btn" href="/admin/users/new">＋ Novo Usuário</a>{% endblock %}
+{% block content %}
+<div class="acard">
+  <table class="atbl">
+    <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    {% for u2 in users %}
+    <tr>
+      <td><strong>{{ u2.name }}</strong></td>
+      <td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:.8rem">{{ u2.username }}</code></td>
+      <td><span class="badge b-{{ u2.role }}">{{ u2.role }}</span></td>
+      <td>{% if u2.active %}<span class="badge b-on">Ativo</span>{% else %}<span class="badge b-off">Inativo</span>{% endif %}</td>
+      <td>
+        <a class="btn" href="/admin/users/{{ u2.id }}/edit" style="margin-right:4px">Editar</a>
+        {% if u2.id != user.sub|int %}
+        <button class="btn dan" onclick="cDel({{ u2.id }},'{{ u2.name }}')">Excluir</button>
+        {% else %}
+        <span style="font-size:.73rem;color:var(--txt)">(você)</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div style="background:#fff;border-radius:var(--r);border:1px solid var(--bd);padding:16px;max-width:480px">
+  <div style="font-weight:600;margin-bottom:7px;font-size:.85rem">Perfis de acesso</div>
+  <div style="font-size:.81rem;color:var(--txt);line-height:2">
+    <span class="badge b-admin">admin</span> – Acesso total, gerencia usuários e tudo<br>
+    <span class="badge b-editor">editor</span> – Cria e edita páginas e seções<br>
+    <span class="badge b-viewer">viewer</span> – Só visualiza o portal (sem /admin)
+  </div>
+</div>
+<div class="cov" id="cov" style="display:none">
+  <div class="cbox"><h3>Confirmar exclusão</h3><p id="cmsg"></p>
+    <div class="cbox-btns">
+      <button class="btn sec" onclick="document.getElementById('cov').style.display='none'">Cancelar</button>
+      <form id="cform" method="post"><button class="btn dan">Excluir</button></form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function cDel(id,n){document.getElementById('cmsg').textContent=`Excluir o usuário "${n}"?`;
+document.getElementById('cform').action=`/admin/users/${id}/delete`;
+document.getElementById('cov').style.display='flex'}
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "admin/base.html" %}
+{% set active="pages" %}
+{% block title %}Páginas{% endblock %}
+{% block page_title %}{% if cur_section %}Páginas – {{ cur_section.name }}{% else %}Todas as Páginas{% endif %}{% endblock %}
+{% block top_actions %}
+<a class="btn" href="/admin/pages/new{% if cur_section %}?section_id={{ cur_section.id }}{% endif %}">＋ Nova Página</a>
+{% endblock %}
+{% block extra_head %}
+<style>
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{border:1.5px solid var(--bd);border-radius:var(--r);
+  padding:7px 11px;font-size:.82rem;font-family:inherit;outline:none;background:#fafcff;color:var(--azul)}
+.filter-bar input{width:200px}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--cl)}
+</style>
+{% endblock %}
+{% block content %}
+<div class="filter-bar">
+  <form method="get" style="display:flex;gap:6px">
+    <select name="section_id" onchange="this.form.submit()">
+      <option value="">Todas as seções</option>
+      {% for s in sections %}
+      <option value="{{ s.id }}" {% if cur_section and cur_section.id==s.id %}selected{% endif %}>{{ s.icon }} {{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <input type="text" placeholder="🔍 Filtrar..." oninput="ft(this.value)">
+</div>
+<div class="acard">
+  <table class="atbl" id="ptbl">
+    <thead><tr><th>Título</th><th>Seção</th><th>Arquivos</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    {% for p in pages %}
+    <tr data-t="{{ p.title|lower }}">
+      <td><strong>{{ p.title }}</strong></td>
+      <td>{{ p.section.icon }} {{ p.section.name }}</td>
+      <td>{{ p.attachments|length }} arquivo(s)</td>
+      <td>{% if p.active %}<span class="badge b-on">Ativo</span>{% else %}<span class="badge b-off">Inativo</span>{% endif %}</td>
+      <td>
+        <a class="btn sec" href="/p/{{ p.id }}" target="_blank" style="margin-right:4px">Ver</a>
+        <a class="btn" href="/admin/pages/{{ p.id }}/edit" style="margin-right:4px">Editar</a>
+        <button class="btn dan" onclick="cDel({{ p.id }},'{{ p.title|replace("'","") }}',{{ p.section_id }})">Excluir</button>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="cov" id="cov" style="display:none">
+  <div class="cbox">
+    <h3>Confirmar exclusão</h3><p id="cmsg"></p>
+    <div class="cbox-btns">
+      <button class="btn sec" onclick="document.getElementById('cov').style.display='none'">Cancelar</button>
+      <form id="cform" method="post"><button class="btn dan">Excluir</button></form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function cDel(id,t,sid){document.getElementById('cmsg').textContent=`Excluir "${t}"?`;
+document.getElementById('cform').action=`/admin/pages/${id}/delete`;
+document.getElementById('cov').style.display='flex'}
+function ft(v){v=v.toLowerCase();document.querySelectorAll('#ptbl tbody tr').forEach(r=>{r.style.display=r.dataset.t.includes(v)?'':'none'})}
+</script>
+{% endblock %}

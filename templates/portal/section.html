@@ -1,0 +1,38 @@
+{% extends "portal/base.html" %}
+{% block title %}{{ section.name }}{% endblock %}
+{% block content %}
+<div class="bc">
+  <a href="/">🏠 Início</a> <span>›</span> <span>{{ section.icon }} {{ section.name }}</span>
+</div>
+<div style="margin-bottom:20px;display:flex;align-items:center;gap:14px">
+  <div style="font-size:2.5rem">{{ section.icon }}</div>
+  <div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.7rem">{{ section.name }}</div>
+    <div style="font-size:.83rem;color:var(--txt)">{{ pages|length }} página(s)</div>
+  </div>
+</div>
+{% if pages %}
+<div style="display:flex;flex-direction:column;gap:10px">
+{% for p in pages %}
+<a href="/p/{{ p.id }}" style="background:var(--branco);border-radius:var(--r);border:1px solid var(--bd);
+   padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+   transition:box-shadow .15s;color:inherit">
+  <div>
+    <div style="font-weight:600;font-size:.95rem">{{ p.title }}</div>
+    {% if p.attachments %}
+    <div style="font-size:.75rem;color:var(--txt);margin-top:3px">
+      📎 {{ p.attachments|length }} arquivo(s) para download
+    </div>
+    {% endif %}
+  </div>
+  <span style="color:var(--txt);font-size:1.1rem">›</span>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:48px;color:var(--txt)">
+  <div style="font-size:2.5rem;margin-bottom:8px">📭</div>
+  Nenhuma página nesta seção ainda.
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% set active="dashboard" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><div class="sv">{{ sections|length }}</div><div class="sl">Seções</div></div>
+  <div class="stat"><div class="sv">{{ total_pages }}</div><div class="sl">Páginas</div></div>
+  <div class="stat"><div class="sv">{{ total_files }}</div><div class="sl">Arquivos</div></div>
+</div>
+<div class="acard">
+  <div class="acard-hd">Seções do Portal
+    <a class="btn" href="/admin/sections/new">＋ Nova Seção</a>
+  </div>
+  <table class="atbl">
+    <thead><tr><th>Ícone</th><th>Nome</th><th>Páginas</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>
+    {% for s in sections %}
+    <tr>
+      <td style="font-size:1.4rem">{{ s.icon }}</td>
+      <td><strong>{{ s.name }}</strong><br><span style="font-size:.73rem;color:var(--txt)">/s/{{ s.slug }}</span></td>
+      <td>{{ s.pages|length }}</td>
+      <td>{% if s.active %}<span class="badge b-on">Ativo</span>{% else %}<span class="badge b-off">Inativo</span>{% endif %}</td>
+      <td>
+        <a class="btn sec" href="/admin/pages?section_id={{ s.id }}" style="margin-right:4px">Páginas</a>
+        <a class="btn" href="/admin/sections/{{ s.id }}/edit">Editar</a>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
